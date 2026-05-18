@@ -1,0 +1,134 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Capture standard data shortcuts
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    function existing() {
+      return resource.data;
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // User Profile Rules
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) 
+        && incoming().uid == userId
+        && incoming().createdAt == request.time;
+      allow update: if isOwner(userId)
+        && incoming().uid == userId
+        && incoming().diff(existing()).affectedKeys().hasOnly(['email', 'displayName', 'photoURL']);
+
+      // Sub-collections
+      match /settings/general {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId);
+      }
+
+      match /transactions/{id} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) 
+          && incoming().userId == userId
+          && incoming().type in ['income', 'expense', 'transfer']
+          && incoming().amount is number && incoming().amount > 0
+          && incoming().date is string
+          && incoming().note is string && incoming().note.size() <= 500
+          && incoming().category is string
+          && incoming().createdAt is number
+          && incoming().keys().hasOnly(['userId', 'type', 'amount', 'category', 'date', 'note', 'createdAt', 'receipt']);
+        allow update: if isOwner(userId)
+          && incoming().userId == userId
+          && incoming().type in ['income', 'expense', 'transfer']
+          && incoming().amount is number && incoming().amount > 0
+          && incoming().note.size() <= 500
+          && incoming().keys().hasOnly(['userId', 'type', 'amount', 'category', 'date', 'note', 'createdAt', 'receipt']);
+        allow delete: if isOwner(userId);
+      }
+
+      match /budgets/{id} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) 
+          && incoming().userId == userId
+          && incoming().limit is number && incoming().limit > 0
+          && incoming().category is string
+          && incoming().keys().hasOnly(['userId', 'id', 'category', 'limit', 'alert', 'spent']);
+        allow delete: if isOwner(userId);
+      }
+
+      match /goals/{id} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) 
+          && incoming().userId == userId
+          && incoming().targetAmount is number && incoming().targetAmount > 0
+          && incoming().title is string && incoming().title.size() <= 100
+          && incoming().keys().hasOnly(['userId', 'id', 'title', 'targetAmount', 'currentAmount', 'deadline', 'color', 'status']);
+        allow delete: if isOwner(userId);
+      }
+
+      match /invoices/{id} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) 
+          && incoming().userId == userId
+          && incoming().amount is number && incoming().amount > 0
+          && incoming().status in ['pending', 'paid', 'overdue']
+          && incoming().keys().hasOnly(['userId', 'id', 'clientName', 'amount', 'status', 'dueDate', 'issueDate', 'note']);
+        allow delete: if isOwner(userId);
+      }
+
+      match /achievements/{id} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && incoming().userId == userId;
+      }
+
+      match /settings/{id} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId) && (id == 'general');
+      }
+
+      match /subscriptions/{id} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /ledger/{id} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && incoming().userId == userId
+          && incoming().amount is number && incoming().amount > 0
+          && incoming().type in ['receivable', 'payable']
+          && incoming().status in ['pending', 'settled']
+          && incoming().keys().hasOnly(['userId', 'id', 'contactName', 'amount', 'type', 'date', 'status', 'note', 'createdAt']);
+        allow delete: if isOwner(userId);
+      }
+
+      match /investments/{id} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && incoming().userId == userId
+          && incoming().amountInvested is number
+          && incoming().currentValue is number
+          && incoming().type in ['stock', 'bond', 'crypto', 'gold', 'other']
+          && incoming().keys().hasOnly(['userId', 'name', 'type', 'amountInvested', 'currentValue', 'date', 'createdAt']);
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

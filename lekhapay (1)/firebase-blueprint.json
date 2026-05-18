@@ -1,0 +1,172 @@
+{
+  "entities": {
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial transaction record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["income", "expense", "transfer"] },
+        "amount": { "type": "number" },
+        "category": { "type": "string" },
+        "note": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["userId", "type", "amount", "category", "date"]
+    },
+    "Budget": {
+      "title": "Budget",
+      "description": "Monthly budget for a category",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "category": { "type": "string" },
+        "limit": { "type": "number" },
+        "alert": { "type": "number" },
+        "spent": { "type": "number" }
+      },
+      "required": ["userId", "category", "limit"]
+    },
+    "Goal": {
+      "title": "Goal",
+      "description": "Financial saving goal",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "targetAmount": { "type": "number" },
+        "currentAmount": { "type": "number" },
+        "deadline": { "type": "string" },
+        "color": { "type": "string" }
+      },
+      "required": ["userId", "title", "targetAmount"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Client invoice record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "clientName": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "paid", "overdue"] },
+        "dueDate": { "type": "string" },
+        "issueDate": { "type": "string" }
+      },
+      "required": ["userId", "clientName", "amount", "status", "dueDate"]
+    },
+    "Achievement": {
+      "title": "Achievement",
+      "description": "User achievement status",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "icon": { "type": "string" },
+        "isUnlocked": { "type": "boolean" }
+      },
+      "required": ["userId", "id", "isUnlocked"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User specific settings and metadata",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["uid"]
+    },
+    "LedgerEntry": {
+      "title": "Ledger Entry",
+      "description": "Record of receivables and payables",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "contactName": { "type": "string" },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "enum": ["receivable", "payable"] },
+        "date": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "settled"] },
+        "note": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["userId", "contactName", "amount", "type", "date", "status"]
+    },
+    "Subscription": {
+      "title": "Subscription",
+      "description": "Recurring subscription record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "amount": { "type": "number" },
+        "interval": { "type": "string" },
+        "nextDate": { "type": "string" },
+        "category": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["userId", "title", "amount"]
+    },
+    "Settings": {
+      "title": "User Settings",
+      "description": "General application settings",
+      "type": "object",
+      "properties": {
+        "currency": { "type": "string" },
+        "language": { "type": "string" },
+        "pinnedTabs": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "firestore": {
+    "users/{userId}/settings/general": {
+      "schema": "Settings",
+      "description": "General user settings"
+    },
+    "users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document"
+    },
+    "users/{userId}/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "User transactions"
+    },
+    "users/{userId}/budgets/{budgetId}": {
+      "schema": "Budget",
+      "description": "User budget settings"
+    },
+    "users/{userId}/goals/{goalId}": {
+      "schema": "Goal",
+      "description": "User financial goals"
+    },
+    "users/{userId}/invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "User invoices"
+    },
+    "users/{userId}/ledger/{ledgerId}": {
+      "schema": "LedgerEntry",
+      "description": "User ledger (বাকির খাতা)"
+    },
+    "users/{userId}/subscriptions/{subscriptionId}": {
+      "schema": "Subscription",
+      "description": "User subscriptions"
+    },
+    "users/{userId}/achievements/{achievementId}": {
+      "schema": "Achievement",
+      "description": "User achievements"
+    }
+  }
+}

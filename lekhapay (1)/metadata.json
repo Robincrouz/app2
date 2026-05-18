@@ -1,0 +1,6 @@
+{
+  "name": "মানি ম্যানেজমেন্ট উইথ এ আই",
+  "description": "মানি ম্যানেজমেন্ট উইথ এ আই — AI-powered Money Ledger & Expense Tracker. Manage your transactions, budgets, and goals with ease.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
